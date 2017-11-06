@@ -77,8 +77,14 @@ class BaseApi(object):
         response = self._call_api(self.session.delete, url, json=payload, timeout=self.timeout)
         return self._process_response(response)
 
-    def _get(self, url, raw_response=False):
-        response = self._call_api(self.session.get, url, timeout=self.timeout)
+    def _get(self, url, raw_response=False, **kwargs):
+        if kwargs:
+            params = '&'.join("%s=%r" % (key, val) for (key, val) in kwargs.iteritems())
+            url = '?'.join([url, params])
+            response = self._call_api(self.session.get, url, timeout=self.timeout)
+        else:
+            response = self._call_api(self.session.get, url, timeout=self.timeout)
+
         if raw_response:
             return response
         else:
@@ -1021,7 +1027,7 @@ class ViewApi(CRUDApi):
             view = view.id
         return self._get(self._build_url(self.endpoint.execute(id=view)))
 
-    def tickets(self, view):
+    def tickets(self, view, **kwargs):
         """
         Return the tickets in a view.
 
@@ -1029,7 +1035,7 @@ class ViewApi(CRUDApi):
         """
         if isinstance(view, View):
             view = view.id
-        return self._get(self._build_url(self.endpoint.tickets(id=view)))
+        return self._get(self._build_url(self.endpoint.tickets(id=view)), **kwargs)
 
     def count(self, view):
         """
